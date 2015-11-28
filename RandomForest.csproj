@@ -51,6 +51,7 @@
     <Compile Include="DecisionTree.cs" />
     <Compile Include="DiscreteType.cs" />
     <Compile Include="DoubleValue.cs" />
+    <Compile Include="Forest.cs" />
     <Compile Include="IntegerValue.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

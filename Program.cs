@@ -34,17 +34,15 @@ namespace RandomForest
             return n + " of " + s;
         }
 
-        static void Main(string[] args)
+        static Random Random = new Random();
+        static DataSet GenerateData(int DataSize)
         {
-            DataSet R = new DataSet();
             List<string> A = new List<string>() { "DownNumber", "DownSuit", "CardNumber", "CardSuit" };
+            DataSet R = new DataSet();
             foreach (string a in A) R.AddAttribute(a, new DiscreteType());
             R.AddAttribute("Valid", new DiscreteType());
-            Random Random = new Random();
-            DecisionTree D = new DecisionTree(R, "Valid");
-            for (int c = 0; c < 5000; ++c)
+            for (int c = 0; c < DataSize; ++c)
             {
-                Console.WriteLine(c);
                 int DownNumber = Random.Next(1, 14);
                 int DownSuit = Random.Next(1, 5);
                 Dictionary<string, AttributeValue> E = new Dictionary<string, AttributeValue>();
@@ -55,22 +53,14 @@ namespace RandomForest
                 E.Add("CardNumber", new IntegerValue(CardNumber));
                 E.Add("CardSuit", new IntegerValue(CardSuit));
                 E.Add("Valid", new BooleanValue(ValidPlay(DownNumber, DownSuit, CardNumber, CardSuit)));
-                if (c == 0)
-                {
-                    R.AddEntry(E);
-                    D = new DecisionTree(R, "Valid");
-                }
-                else
-                {
-                    AttributeValue Decision = D.MakeDecision(E);
-                    if (new BooleanValue(ValidPlay(DownNumber, DownSuit, CardNumber, CardSuit)).CompareTo(Decision) != 0)
-                    {
-                        Console.WriteLine("Redo");
-                        R.AddEntry(E);
-                        D = new DecisionTree(R, "Valid");
-                    }
-                }
+                R.AddEntry(E);
             }
+            return R;
+        }
+
+        static void Main(string[] args)
+        {
+            Forest D = new Forest(1000, 100, GenerateData, "Valid");
 
             int Total = 0;
             int Correct = 0;

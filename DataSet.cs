@@ -57,12 +57,16 @@ namespace RandomForest
             Dictionary<AttributeValue, double> P = new Dictionary<AttributeValue, double>();
             foreach (AttributeValue V in _Values[Attribute])
             {
-                int i = 0;
+                bool Found = false;
                 foreach (AttributeValue Key in P.Keys.ToList())
                 {
-                    if (Key.CompareTo(V) == 0) P[Key]++;
+                    if (Key.CompareTo(V) == 0)
+                    {
+                        P[Key] += 1d / _Values[Attribute].Count;
+                        Found = true;
+                    }
                 }
-                if (i == P.Count)
+                if (!Found)
                 {
                     P.Add(V, 1d / _Values[Attribute].Count);
                 }
