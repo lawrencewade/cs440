@@ -7,157 +7,183 @@ namespace RandomForest
 {
     class DataSet
     {
-        Dictionary<string, List<AttributeValue>> _Values = new Dictionary<string, List<AttributeValue>>();
-        Dictionary<string, AttributeType> _Types = new Dictionary<string, AttributeType>();
+        List<List<AttributeValue>> _Values = new List<List<AttributeValue>>();
+        List<AttributeType> _Types = new List<AttributeType>();
 
-        public List<AttributeValue> this[string Key] { get { return _Values[Key]; } }
-        public AttributeType Type(string Attribute) { return _Types[Attribute]; }
+        public List<AttributeValue> this[int Key] { get { return _Values[Key]; } }
+        public AttributeType Type(int Attribute) { return _Types[Attribute]; }
         public int AttributeCount { get { return _Values.Count; } }
-
-        public string RandomAttribute(Random Random) { return _Values.Keys.ToList()[Random.Next(0, _Values.Count)]; }
 
         public void AddAttribute(string Name, AttributeType Type)
         {
-            _Values.Add(Name, new List<AttributeValue>());
-            _Types.Add(Name, Type);
+            _Values.Add(new List<AttributeValue>());
+            _Types.Add(Type);
         }
 
-        public void AddEntry(Dictionary<string, AttributeValue> Entry)
+        public void AddEntry(AttributeValue[] Entry)
         {
-            foreach (KeyValuePair<string, AttributeValue> E in Entry)
+            for (int i = 0; i < Entry.Length;++i)
             {
-                _Values[E.Key].Add(E.Value);
+                _Values[i].Add(Entry[i]);
             }
         }
 
-        public DataSet Subset(string Attribute, AttributeValue Value, bool Remove=false)
+        public DataSet Subset(Func<AttributeValue[], AttributeValue> Discriminator, AttributeValue Match, int Remove = -1)
         {
-            Dictionary<string, List<AttributeValue>> Values = new Dictionary<string,List<AttributeValue>>();
-            Dictionary<string, AttributeType> Types = new Dictionary<string,AttributeType>();
-            for(int i=0;i < _Values[Attribute].Count;++i)
+            List<List<AttributeValue>> Values = new List<List<AttributeValue>>();
+            for (int i = 0; i < _Values.Count; ++i) Values.Add(new List<AttributeValue>());
+            List<AttributeType> Types = new List<AttributeType>(_Types);
+            AttributeValue[] Current = new AttributeValue[_Values.Count];
+            for(int i=0;i < _Values[0].Count;++i)
             {
-                AttributeValue V = _Values[Attribute][i];
-                if (V.CompareTo(Value) == 0)
+                for (int j = 0; j < _Values.Count; ++j)
                 {
-                    foreach (string S in _Values.Keys)
+                    Current[j] = _Values[j][i];
+                }
+                if (Discriminator.Invoke(Current).CompareTo(Match) == 0)
+                {
+                    for (int j = 0; j < _Values.Count; ++j)
                     {
-                        if (S != Attribute || !Remove)
-                        {
-                            if (!Values.ContainsKey(S)) { Values.Add(S, new List<AttributeValue>()); Types.Add(S, _Types[S]); }
-                            Values[S].Add(_Values[S][i]);
-                        }
+                        Values[j].Add(Current[j]);
                     }
                 }
             }
+            if (Remove > -1) Values.RemoveAt(Remove);
             return new DataSet() { _Values = Values, _Types = Types };
         }
 
-        private Dictionary<AttributeValue, double> Proportions(string Attribute)
+        private List<Pair<AttributeValue, double>> Proportions(Func<AttributeValue[], AttributeValue> Discriminator)
         {
-            Dictionary<AttributeValue, double> P = new Dictionary<AttributeValue, double>();
-            foreach (AttributeValue V in _Values[Attribute])
+            List<Pair<AttributeValue, double>> P = new List<Pair<AttributeValue, double>>();
+            List<AttributeValue> V = new List<AttributeValue>();
+            AttributeValue[] Current = new AttributeValue[_Values.Count];
+            for (int i = 0; i < _Values[0].Count; ++i)
             {
-                bool Found = false;
-                foreach (AttributeValue Key in P.Keys.ToList())
+                for (int j = 0; j < _Values.Count; ++j)
                 {
-                    if (Key.CompareTo(V) == 0)
-                    {
-                        P[Key] += 1d / _Values[Attribute].Count;
-                        Found = true;
-                    }
+                    Current[j] = _Values[j][i];
                 }
-                if (!Found)
+                V.Add(Discriminator.Invoke(Current));
+            }
+            V.Sort(delegate(AttributeValue V1, AttributeValue V2) { return V1.CompareTo(V2); });
+            AttributeValue C = null;
+            foreach (AttributeValue v in V)
+            {
+                if (C== null || C.CompareTo(v) != 0)
                 {
-                    P.Add(V, 1d / _Values[Attribute].Count);
+                    C = v;
+                    P.Add(new Pair<AttributeValue, double>(v, 1d / V.Count));
                 }
+                else P[P.Count - 1].Second += 1d / V.Count;
             }
             return P;
         }
 
-        public string BestGain(string Target)
+        public Pair<int, Discriminator> BestGain(int Target)
         {
             double G = 0;
-            string A = "";
-            foreach (string S in _Values.Keys)
+            int I = -1;
+            int C = -1;
+            for(int i=0; i<_Values.Count; ++i)
             {
-                if (S != Target)
+                if (i != Target)
                 {
+                    Func<AttributeValue[], AttributeValue> S = delegate(AttributeValue[] E) { return E[i]; };
                     double g = Gain(Target, S);
-                    if (g > G || A == "")
+                    if (g > G || I == -1)
                     {
                         G = g;
-                        A = S;
+                        I = i;
                     }
                 }
             }
-            return A;
+
+            for (int i = 0; i < _Values.Count; ++i)
+            {
+                for (int j = 0; j < _Values.Count; ++j)
+                {
+                    if (i != Target && j != Target)
+                    {
+                        Func<AttributeValue[], AttributeValue> S = delegate(AttributeValue[] E) { return new IntegerValue(E[i].CompareTo(E[j])); };
+                        double g = Gain(Target, S);
+                        if (g > G)
+                        {
+                            G = g;
+                            I = i;
+                            C = j;
+                        }
+                    }
+                }
+            }
+            if (C == -1) return new Pair<int, Discriminator>(I, new Discriminator(I));
+            else return new Pair<int, Discriminator>(I, new Discriminator(I, C));
         }
 
-        public double Gain(string Target, string Removal)
+        public double Gain(int Target, Func<AttributeValue[], AttributeValue> Discriminator)
         {
             double G = Entropy(Target);
-            Dictionary<AttributeValue, double> P = Proportions(Removal);
-            foreach (KeyValuePair<AttributeValue, double> p in P)
+            List<Pair<AttributeValue, double>> P = Proportions(Discriminator);
+            foreach (Pair<AttributeValue, double> p in P)
             {
-                DataSet D = Subset(Removal, p.Key);
-                G -= p.Value * D.Entropy(Target);
+                DataSet D = Subset(Discriminator, p.First);
+                G -= p.Second * D.Entropy(Target);
             }
             return G;
         }
 
-        public double Entropy(string Target)
+        public double Entropy(int Target)
         {
-            AttributeType TargetType = _Types[Target];
-
-
             double E = 0;
-            foreach(KeyValuePair<AttributeValue, double> P in Proportions(Target))
+            foreach(Pair<AttributeValue, double> P in Proportions(delegate(AttributeValue[] e) { return e[Target]; }))
             {
-                E -= P.Value * Math.Log(P.Value) / Math.Log(2);
+                E -= P.Second * Math.Log(P.Second);
             }
             return E;
         }
 
-        public AttributeValue MostCommonValue(string Target)
+        public AttributeValue MostCommonValue(int Target)
         {
             double m = 0;
             AttributeValue R = null;
-            Dictionary<AttributeValue, double> P = Proportions(Target);
-            foreach (KeyValuePair<AttributeValue, double> p in P)
+            List<Pair<AttributeValue, double>> P = Proportions(delegate(AttributeValue[] E) { return E[Target]; });
+            foreach (Pair<AttributeValue, double> p in P)
             {
-                if (p.Value > m || R == null)
+                if (p.Second > m || R == null)
                 {
-                    m = p.Value;
-                    R = p.Key;
+                    m = p.Second;
+                    R = p.First;
                 }
             }
             return R;
         }
 
-        public KeyValuePair<AttributeValue, bool> SingularValue(string Target)
+        public KeyValuePair<AttributeValue, bool> SingularValue(int Target)
         {
-            double m = 0;
-            AttributeValue R = null;
-            Dictionary<AttributeValue, double> P = Proportions(Target);
-            foreach (KeyValuePair<AttributeValue, double> p in P)
+            AttributeValue A = _Values[Target][0];
+            foreach (AttributeValue v in _Values[Target])
             {
-                if (p.Value > m || R == null)
-                {
-                    m = p.Value;
-                    R = p.Key;
-                }
+                if (A.CompareTo(v) != 0) return new KeyValuePair<AttributeValue,bool>(null, false);
             }
-            return new KeyValuePair<AttributeValue,bool>(R, Math.Abs(m - 1) < .000001);
+            return new KeyValuePair<AttributeValue,bool>(A, true);
         }
 
-        public List<AttributeValue> SortedValues(string Attribute)
+        public List<AttributeValue> SortedValues(Func<AttributeValue[], AttributeValue> Discriminator)
         {
-            List<AttributeValue> R = new List<AttributeValue>(_Values[Attribute]);
+            List<AttributeValue> R = new List<AttributeValue>();
+            AttributeValue[] Current = new AttributeValue[_Values.Count];
+            for (int i = 0; i < _Values[0].Count; ++i)
+            {
+                for (int j = 0; j < _Values.Count; ++j)
+                {
+                    Current[j] = _Values[j][i];
+                }
+                R.Add(Discriminator.Invoke(Current));
+            }
             R.Sort(delegate(AttributeValue V1, AttributeValue V2) { return V1.CompareTo(V2); });
             List<AttributeValue> N = new List<AttributeValue>();
             foreach (AttributeValue V in R)
             {
-                if (N.Count == 0 || V != N[N.Count - 1]) N.Add(V);
+                if (N.Count == 0 || V.CompareTo(N[N.Count - 1]) != 0) N.Add(V);
             }
             return N;
         }

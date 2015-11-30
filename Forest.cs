@@ -8,16 +8,46 @@ namespace RandomForest
     class Forest
     {
         List<DecisionTree> _Trees = new List<DecisionTree>();
+        List<DataSet> _DataSets = new List<DataSet>();
 
-        public Forest(int Trees, int DataSize, Func<int, DataSet> DataGenerator, string Target)
+        public Forest(int Trees, int DataSize, Func<int, DataSet> DataGenerator, int Target)
         {
             for (int i = 0; i < Trees; ++i)
             {
-                _Trees.Add(new DecisionTree(DataGenerator.Invoke(DataSize), Target));
+                DataSet D = DataGenerator.Invoke(DataSize);
+                _Trees.Add(new DecisionTree(D, Target));
+                _DataSets.Add(D);
             }
         }
 
-        public AttributeValue MakeDecision(Dictionary<string, AttributeValue> Data)
+        public Forest(int Trees, int DataSize, int Rounds, Func<int, DataSet> DataGenerator, Func<AttributeValue[]> EntryGenerator, Func<AttributeValue[], bool> Validator, int Target)
+        {
+            for (int i = 0; i < Trees; ++i)
+            {
+                DataSet D = DataGenerator.Invoke(DataSize);
+                _Trees.Add(new DecisionTree(D, Target));
+                _DataSets.Add(D);
+            }
+            for (int i = 0; i < Rounds; ++i)
+            {
+                Console.WriteLine(i);
+                AttributeValue[] E = EntryGenerator.Invoke();
+                AttributeValue Correct = E[Target];
+                for (int j = 0; j < _Trees.Count; ++j)
+                {
+                    AttributeValue Answer = _Trees[j].MakeDecision(E);
+                    E[Target] = Answer;
+                    if (!Validator.Invoke(E))
+                    {
+                        Console.WriteLine("RECONSTRUCT TREE {0}", j);
+                        _DataSets[j].AddEntry(E);
+                        _Trees[j] = new DecisionTree(_DataSets[j], Target);
+                    }
+                }
+            }
+        }
+
+        public AttributeValue MakeDecision(AttributeValue[] Data)
         {
             Dictionary<AttributeValue, int> P = new Dictionary<AttributeValue, int>();
             foreach (DecisionTree D in _Trees)
@@ -48,6 +78,16 @@ namespace RandomForest
                 }
             }
             return M;
+        }
+
+        public override string ToString()
+        {
+            string R = "";
+            foreach (DecisionTree D in _Trees)
+            {
+                R += D.ToString() + '\n';
+            }
+            return R;
         }
     }
 }
