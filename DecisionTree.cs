@@ -29,7 +29,7 @@ namespace RandomForest
                     List<AttributeValue> A = DataSet.SortedValues(_Check.Second.Function);
                     foreach (AttributeValue V in A)
                     {
-                        DecisionTree C = new DecisionTree(DataSet.Subset(_Check.Second.Function, V, _Check.First), Target - 1);
+                        DecisionTree C = new DecisionTree(DataSet.Subset(_Check.Second.Function, V, _Check.First), Target - (_Check.First > -1 ? 1 : 0));
                         _Children.Add(new KeyValuePair<AttributeValue, DecisionTree>(V, C));
                     }
                 }
@@ -53,6 +53,8 @@ namespace RandomForest
 
         private AttributeValue[] RemoveUsed(AttributeValue[] Data)
         {
+            if (_Check.First == -1) return Data;
+
             AttributeValue[] R = new AttributeValue[Data.Length - 1];
             int j = 0;
             for (int i = 0; i < Data.Length; ++i)
@@ -69,7 +71,7 @@ namespace RandomForest
                 string R = "".PadLeft(Depth, '\t') + _Check + '\n';
                 foreach (KeyValuePair<AttributeValue, DecisionTree> p in _Children)
                 {
-                    R += "".PadLeft(Depth + 1, '\t') + "-" + p.Key.ToString() + '\n' + p.Value.ToStringAux(Depth + 1);
+                    R += "".PadLeft(Depth + 1, '\t') + "--> " + p.Key.ToString() + '\n' + p.Value.ToStringAux(Depth + 1);
                 }
                 return R + '\n';
             }

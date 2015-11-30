@@ -116,7 +116,7 @@ namespace RandomForest
                 }
             }
             if (C == -1) return new Pair<int, Discriminator>(I, new Discriminator(I));
-            else return new Pair<int, Discriminator>(I, new Discriminator(I, C));
+            else return new Pair<int, Discriminator>(-1, new Discriminator(I, C));
         }
 
         public double Gain(int Target, Func<AttributeValue[], AttributeValue> Discriminator)
