@@ -8,60 +8,48 @@ namespace RandomForest
     class DecisionTree
     {
         AttributeValue _Value;
-        Pair<int, Discriminator> _Check;
+        Discriminator _Check;
         List<KeyValuePair<AttributeValue, DecisionTree>> _Children;
 
         public DecisionTree(DataSet DataSet, int Target)
         {
-            if (DataSet.AttributeCount == 0) return;
-            else if (DataSet.AttributeCount == 1)
-            {
-                _Value = DataSet.MostCommonValue(Target);
-            }
+            KeyValuePair<AttributeValue, bool> S = DataSet.SingularValue(Target);
+            if (S.Value) _Value = S.Key;
             else
             {
-                KeyValuePair<AttributeValue, bool> S = DataSet.SingularValue(Target);
-                if (S.Value) _Value = S.Key;
-                else
+                _Check = DataSet.BestGain(Target);
+                if (_Check == null)
                 {
-                    _Check = DataSet.BestGain(Target);
-                    _Children = new List<KeyValuePair<AttributeValue, DecisionTree>>();
-                    List<AttributeValue> A = DataSet.SortedValues(_Check.Second.Function);
-                    foreach (AttributeValue V in A)
-                    {
-                        DecisionTree C = new DecisionTree(DataSet.Subset(_Check.Second.Function, V, _Check.First), Target - (_Check.First > -1 ? 1 : 0));
-                        _Children.Add(new KeyValuePair<AttributeValue, DecisionTree>(V, C));
-                    }
+                    _Value = DataSet.MostCommonValue(Target);
+                    return;
+                }
+                _Children = new List<KeyValuePair<AttributeValue, DecisionTree>>();
+                List<AttributeValue> A = DataSet.SortedValues(_Check.Function);
+                foreach (AttributeValue V in A)
+                {
+                    DecisionTree C = new DecisionTree(DataSet.Subset(_Check.Function, V), Target);
+                    _Children.Add(new KeyValuePair<AttributeValue, DecisionTree>(V, C));
                 }
             }
         }
 
-        public AttributeValue MakeDecision(AttributeValue[] Data)
+        public AttributeValue MakeDecision(AttributeValue[] Data, bool Print = false)
         {
-            if (_Children == null) return _Value;
+            if (_Children == null)
+            {
+                if (Print) Console.WriteLine(_Value);
+                return _Value;
+            }
             else
             {
-                AttributeValue V = _Check.Second.Function.Invoke(Data);
-                AttributeValue[] d = RemoveUsed(Data);
+                AttributeValue V = _Check.Function.Invoke(Data);
+                if (Print) Console.WriteLine("{0} {1}", V, _Check);
                 foreach (KeyValuePair<AttributeValue, DecisionTree> P in _Children)
                 {
-                    if (V.CompareTo(P.Key) <= 0) return P.Value.MakeDecision(d);
+                    if (V.CompareTo(P.Key) <= 0) return P.Value.MakeDecision(Data, Print);
                 }
-                return _Children[_Children.Count - 1].Value.MakeDecision(d);
+                return _Children[_Children.Count - 1].Value.MakeDecision(Data, Print);
             }
-        }
-
-        private AttributeValue[] RemoveUsed(AttributeValue[] Data)
-        {
-            if (_Check.First == -1) return Data;
-
-            AttributeValue[] R = new AttributeValue[Data.Length - 1];
-            int j = 0;
-            for (int i = 0; i < Data.Length; ++i)
-            {
-                if (i != _Check.First) R[j++] = Data[i];
-            }
-            return R;
         }
 
         private string ToStringAux(int Depth)

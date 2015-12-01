@@ -16,6 +16,16 @@ namespace RandomForest
             return _Value.CompareTo(((BooleanValue)Value)._Value);
         }
 
+        public AttributeValue Add(AttributeValue Value)
+        {
+            return new BooleanValue(_Value ^ ((BooleanValue)Value)._Value);
+        }
+
+        public AttributeValue Subtract(AttributeValue Value)
+        {
+            return new BooleanValue(_Value ^ ((BooleanValue)Value)._Value);
+        }
+
         public override string ToString()
         {
             return _Value.ToString();

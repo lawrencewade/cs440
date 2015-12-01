@@ -42,9 +42,7 @@ namespace RandomForest
         static Random Random = new Random();
         static DataSet GenerateData(int DataSize)
         {
-            List<string> A = new List<string>() { "DownNumber", "DownSuit", "Card0Number", "Card0Suit", "Card1Number", "Card1Suit", "Card2Number", "Card2Suit", "Play" };
-            DataSet R = new DataSet();
-            foreach (string a in A) R.AddAttribute(a, new DiscreteType());
+            DataSet R = new DataSet(9);
             for (int c = 0; c < DataSize; ++c)
             {
                 R.AddEntry(GenerateEntry());
@@ -89,14 +87,16 @@ namespace RandomForest
 
         static void Main(string[] args)
         {
-            Forest D = new Forest(1, 50000, GenerateData, 8);
+            Forest D = new Forest(1, 20000, GenerateData, 8);
 
             Console.WriteLine(D);
+            int Correct = 0;
             for(int c=0;c<50000; ++c)
             {
                 AttributeValue[] E = GenerateEntry();
                 AttributeValue Decision = D.MakeDecision(E);
                 E[8] = Decision;
+                /*
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("DOWN IS {0}", DataToCardAlt(E[0], E[1]));
                 Console.ForegroundColor = ConsoleColor.Cyan;
@@ -106,8 +106,11 @@ namespace RandomForest
                 Console.ForegroundColor = ConsoleColor.Magenta;
                 int p = Convert.ToInt32(E[8].ToString());
                 Console.WriteLine("I PLAY {0}", (p > -1 ? DataToCardAlt(E[p * 2 + 2], E[p * 2 + 3]) : "DRAW"));
-                Console.ReadLine();
+                 */
+                Correct += Validator(E) ? 1 : 0;
+                if (!Validator(E)) D.MakeDecision(E, true);
             }
+            Console.WriteLine("{0}/{1}", Correct, 50000);
             Console.ReadLine();
         }
     }

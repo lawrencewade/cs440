@@ -16,6 +16,16 @@ namespace RandomForest
             return _Value.CompareTo(((IntegerValue)Value)._Value);
         }
 
+        public AttributeValue Add(AttributeValue Value)
+        {
+            return new IntegerValue(_Value + ((IntegerValue)Value)._Value);
+        }
+
+        public AttributeValue Subtract(AttributeValue Value)
+        {
+            return new IntegerValue(_Value - ((IntegerValue)Value)._Value);
+        }
+
         public override string ToString()
         {
             return _Value.ToString();

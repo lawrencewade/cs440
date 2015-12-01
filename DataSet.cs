@@ -7,17 +7,17 @@ namespace RandomForest
 {
     class DataSet
     {
-        List<List<AttributeValue>> _Values = new List<List<AttributeValue>>();
-        List<AttributeType> _Types = new List<AttributeType>();
+        List<AttributeValue>[] _Values;
 
         public List<AttributeValue> this[int Key] { get { return _Values[Key]; } }
-        public AttributeType Type(int Attribute) { return _Types[Attribute]; }
-        public int AttributeCount { get { return _Values.Count; } }
+        public int Count { get { return _Values[0].Count; } }
 
-        public void AddAttribute(string Name, AttributeType Type)
+        private DataSet() { }
+
+        public DataSet(int Columns)
         {
-            _Values.Add(new List<AttributeValue>());
-            _Types.Add(Type);
+            _Values = new List<AttributeValue>[Columns];
+            for (int i = 0; i < Columns; ++i) _Values[i] = new List<AttributeValue>();
         }
 
         public void AddEntry(AttributeValue[] Entry)
@@ -28,38 +28,36 @@ namespace RandomForest
             }
         }
 
-        public DataSet Subset(Func<AttributeValue[], AttributeValue> Discriminator, AttributeValue Match, int Remove = -1)
+        public DataSet Subset(Func<AttributeValue[], AttributeValue> Discriminator, AttributeValue Match)
         {
-            List<List<AttributeValue>> Values = new List<List<AttributeValue>>();
-            for (int i = 0; i < _Values.Count; ++i) Values.Add(new List<AttributeValue>());
-            List<AttributeType> Types = new List<AttributeType>(_Types);
-            AttributeValue[] Current = new AttributeValue[_Values.Count];
+            List<AttributeValue>[] Values = new List<AttributeValue>[_Values.Length];
+            for (int i = 0; i < _Values.Length; ++i) Values[i] = new List<AttributeValue>();
+            AttributeValue[] Current = new AttributeValue[_Values.Length];
             for(int i=0;i < _Values[0].Count;++i)
             {
-                for (int j = 0; j < _Values.Count; ++j)
+                for (int j = 0; j < _Values.Length; ++j)
                 {
                     Current[j] = _Values[j][i];
                 }
                 if (Discriminator.Invoke(Current).CompareTo(Match) == 0)
                 {
-                    for (int j = 0; j < _Values.Count; ++j)
+                    for (int j = 0; j < _Values.Length; ++j)
                     {
                         Values[j].Add(Current[j]);
                     }
                 }
             }
-            if (Remove > -1) Values.RemoveAt(Remove);
-            return new DataSet() { _Values = Values, _Types = Types };
+            return new DataSet() { _Values = Values };
         }
 
         private List<Pair<AttributeValue, double>> Proportions(Func<AttributeValue[], AttributeValue> Discriminator)
         {
             List<Pair<AttributeValue, double>> P = new List<Pair<AttributeValue, double>>();
             List<AttributeValue> V = new List<AttributeValue>();
-            AttributeValue[] Current = new AttributeValue[_Values.Count];
+            AttributeValue[] Current = new AttributeValue[_Values.Length];
             for (int i = 0; i < _Values[0].Count; ++i)
             {
-                for (int j = 0; j < _Values.Count; ++j)
+                for (int j = 0; j < _Values.Length; ++j)
                 {
                     Current[j] = _Values[j][i];
                 }
@@ -79,28 +77,15 @@ namespace RandomForest
             return P;
         }
 
-        public Pair<int, Discriminator> BestGain(int Target)
+        public Discriminator BestGain(int Target)
         {
             double G = 0;
             int I = -1;
             int C = -1;
-            for(int i=0; i<_Values.Count; ++i)
+            int F = -1;
+            for (int i = 0; i < _Values.Length - 1; ++i)
             {
-                if (i != Target)
-                {
-                    Func<AttributeValue[], AttributeValue> S = delegate(AttributeValue[] E) { return E[i]; };
-                    double g = Gain(Target, S);
-                    if (g > G || I == -1)
-                    {
-                        G = g;
-                        I = i;
-                    }
-                }
-            }
-
-            for (int i = 0; i < _Values.Count; ++i)
-            {
-                for (int j = 0; j < _Values.Count; ++j)
+                for (int j = i + 1; j < _Values.Length; ++j)
                 {
                     if (i != Target && j != Target)
                     {
@@ -111,12 +96,47 @@ namespace RandomForest
                             G = g;
                             I = i;
                             C = j;
+                            F = 0;
+                        }
+                        S = delegate(AttributeValue[] E) { return E[i].Add(E[j]); };
+                        g = Gain(Target, S);
+                        if (g > G)
+                        {
+                            G = g;
+                            I = i;
+                            C = j;
+                            F = 1;
+                        }
+                        S = delegate(AttributeValue[] E) { return E[i].Subtract(E[j]); };
+                        g = Gain(Target, S);
+                        if (g > G)
+                        {
+                            G = g;
+                            I = i;
+                            C = j;
+                            F = 2;
                         }
                     }
                 }
             }
-            if (C == -1) return new Pair<int, Discriminator>(I, new Discriminator(I));
-            else return new Pair<int, Discriminator>(-1, new Discriminator(I, C));
+            for(int i=0; i<_Values.Length; ++i)
+            {
+                if (i != Target)
+                {
+                    Func<AttributeValue[], AttributeValue> S = delegate(AttributeValue[] E) { return E[i]; };
+                    double g = Gain(Target, S);
+                    if (g > G)
+                    {
+                        G = g;
+                        I = i;
+                        C = -1;
+                    }
+                }
+            }
+            Console.WriteLine(G);
+            if (Math.Abs(G) < .00001) return null;
+            if (C == -1) return new Discriminator(I);
+            else return new Discriminator(I, C, F);
         }
 
         public double Gain(int Target, Func<AttributeValue[], AttributeValue> Discriminator)
@@ -128,7 +148,7 @@ namespace RandomForest
                 DataSet D = Subset(Discriminator, p.First);
                 G -= p.Second * D.Entropy(Target);
             }
-            return G;
+            return G / Math.Log(P.Count + 1);
         }
 
         public double Entropy(int Target)
@@ -170,10 +190,10 @@ namespace RandomForest
         public List<AttributeValue> SortedValues(Func<AttributeValue[], AttributeValue> Discriminator)
         {
             List<AttributeValue> R = new List<AttributeValue>();
-            AttributeValue[] Current = new AttributeValue[_Values.Count];
+            AttributeValue[] Current = new AttributeValue[_Values.Length];
             for (int i = 0; i < _Values[0].Count; ++i)
             {
-                for (int j = 0; j < _Values.Count; ++j)
+                for (int j = 0; j < _Values.Length; ++j)
                 {
                     Current[j] = _Values[j][i];
                 }

@@ -8,5 +8,7 @@ namespace RandomForest
     interface AttributeValue
     {
         int CompareTo(AttributeValue Value);
+        AttributeValue Add(AttributeValue Value);
+        AttributeValue Subtract(AttributeValue Value);
     }
 }

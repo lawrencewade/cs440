@@ -47,12 +47,12 @@ namespace RandomForest
             }
         }
 
-        public AttributeValue MakeDecision(AttributeValue[] Data)
+        public AttributeValue MakeDecision(AttributeValue[] Data, bool Print = false)
         {
             Dictionary<AttributeValue, int> P = new Dictionary<AttributeValue, int>();
             foreach (DecisionTree D in _Trees)
             {
-                AttributeValue V = D.MakeDecision(Data);
+                AttributeValue V = D.MakeDecision(Data, Print);
                 bool Found = false;
                 foreach (AttributeValue Key in P.Keys.ToList())
                 {
