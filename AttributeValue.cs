@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RandomForest
 {
-    interface AttributeValue
+    public interface AttributeValue
     {
         int CompareTo(AttributeValue Value);
         AttributeValue Add(AttributeValue Value);

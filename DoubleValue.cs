@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RandomForest
 {
-    class DoubleValue : AttributeValue
+    public class DoubleValue : AttributeValue
     {
         double _Value;
 

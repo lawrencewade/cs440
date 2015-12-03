@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RandomForest
 {
-    class IntegerValue : AttributeValue
+    public class IntegerValue : AttributeValue
     {
         int _Value;
 

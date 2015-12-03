@@ -5,13 +5,15 @@ using System.Text;
 
 namespace RandomForest
 {
-    class Forest
+    public class Forest
     {
         List<DecisionTree> _Trees = new List<DecisionTree>();
         List<DataSet> _DataSets = new List<DataSet>();
+        int _Target;
 
         public Forest(int Trees, int DataSize, Func<int, DataSet> DataGenerator, int Target)
         {
+            _Target = Target;
             for (int i = 0; i < Trees; ++i)
             {
                 DataSet D = DataGenerator.Invoke(DataSize);
@@ -22,6 +24,7 @@ namespace RandomForest
 
         public Forest(int Trees, int DataSize, int Rounds, Func<int, DataSet> DataGenerator, Func<AttributeValue[]> EntryGenerator, Func<AttributeValue[], bool> Validator, int Target)
         {
+            _Target = Target;
             for (int i = 0; i < Trees; ++i)
             {
                 DataSet D = DataGenerator.Invoke(DataSize);
@@ -32,7 +35,6 @@ namespace RandomForest
             {
                 Console.WriteLine(i);
                 AttributeValue[] E = EntryGenerator.Invoke();
-                AttributeValue Correct = E[Target];
                 for (int j = 0; j < _Trees.Count; ++j)
                 {
                     AttributeValue Answer = _Trees[j].MakeDecision(E);
@@ -78,6 +80,12 @@ namespace RandomForest
                 }
             }
             return M;
+        }
+
+        public void AddEntry(AttributeValue[] Entry)
+        {
+            foreach (DataSet D in _DataSets) D.AddEntry(Entry);
+            for (int i = 0; i < _DataSets.Count; ++i) _Trees[i] = new DecisionTree(_DataSets[i], _Target);
         }
 
         public override string ToString()

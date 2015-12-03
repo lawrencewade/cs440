@@ -9,7 +9,12 @@ namespace RandomForest
     {
         static bool ValidPlay(int DownNumber, int DownSuit, int CardNumber, int CardSuit)
         {
-            return DownNumber == CardNumber || DownSuit == CardSuit;
+            return DownNumber * 2 == CardNumber || CardSuit == DownSuit;
+        }
+
+        static bool ValidPlayAlt(AttributeValue DownNumber, AttributeValue DownSuit, AttributeValue CardNumber, AttributeValue CardSuit)
+        {
+            return ValidPlay(Convert.ToInt32(DownNumber.ToString()), Convert.ToInt32(DownSuit.ToString()), Convert.ToInt32(CardNumber.ToString()), Convert.ToInt32(CardSuit.ToString()));
         }
 
         static string DataToCard(int CardNumber, int CardSuit)
@@ -42,7 +47,7 @@ namespace RandomForest
         static Random Random = new Random();
         static DataSet GenerateData(int DataSize)
         {
-            DataSet R = new DataSet(9);
+            DataSet R = new DataSet(5);
             for (int c = 0; c < DataSize; ++c)
             {
                 R.AddEntry(GenerateEntry());
@@ -54,48 +59,35 @@ namespace RandomForest
         {
             int DownNumber = Random.Next(1, 14);
             int DownSuit = Random.Next(1, 5);
-            AttributeValue[] E = new AttributeValue[9];
+            AttributeValue[] E = new AttributeValue[5];
             E[0] = new IntegerValue(DownNumber);
             E[1] = new IntegerValue(DownSuit);
-            int P = -1;
-            for (int i = 0; i < 3; ++i)
-            {
-                int CardNumber = Random.Next(1, 14);
-                int CardSuit = Random.Next(1, 5);
-                E[i * 2 + 2] = new IntegerValue(CardNumber);
-                E[i * 2 + 3] = new IntegerValue(CardSuit);
-                if (ValidPlay(DownNumber, DownSuit, CardNumber, CardSuit)) P = i;
-            }
-            E[8] = new IntegerValue(P);
+            int CardNumber = Random.Next(1, 14);
+            int CardSuit = Random.Next(1, 5);
+            E[2] = new IntegerValue(CardNumber);
+            E[3] = new IntegerValue(CardSuit);
+            E[4] = new BooleanValue(ValidPlay(DownNumber, DownSuit, CardNumber, CardSuit));
 
             return E;
         }
 
         static bool Validator(AttributeValue[] Entry)
         {
-            int a = Convert.ToInt32(Entry[8].ToString());
-            if (a > -1) return Entry[0].CompareTo(Entry[a * 2 + 2]) == 0 || Entry[1].CompareTo(Entry[a * 2 + 3]) == 0;
-            else
-            {
-                for (int i = 0; i < 3; ++i)
-                {
-                    if(Entry[0].CompareTo(Entry[i * 2 + 2]) == 0 || Entry[1].CompareTo(Entry[i * 2 + 3]) == 0) return false;
-                }
-                return true;
-            }
+            bool a = Convert.ToBoolean(Entry[4].ToString());
+            return a == ValidPlayAlt(Entry[0], Entry[1], Entry[2], Entry[3]);
         }
 
         static void Main(string[] args)
         {
-            Forest D = new Forest(1, 20000, GenerateData, 8);
+            Forest D = new Forest(1, 8000, GenerateData, 4);
 
             Console.WriteLine(D);
             int Correct = 0;
-            for(int c=0;c<50000; ++c)
+            for(int c=0;c<500000; ++c)
             {
                 AttributeValue[] E = GenerateEntry();
                 AttributeValue Decision = D.MakeDecision(E);
-                E[8] = Decision;
+                E[4] = Decision;
                 /*
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("DOWN IS {0}", DataToCardAlt(E[0], E[1]));
@@ -108,9 +100,9 @@ namespace RandomForest
                 Console.WriteLine("I PLAY {0}", (p > -1 ? DataToCardAlt(E[p * 2 + 2], E[p * 2 + 3]) : "DRAW"));
                  */
                 Correct += Validator(E) ? 1 : 0;
-                if (!Validator(E)) D.MakeDecision(E, true);
+                //if (!Validator(E)) D.MakeDecision(E, true);
             }
-            Console.WriteLine("{0}/{1}", Correct, 50000);
+            Console.WriteLine("{0}/{1} {2}", Correct, 500000, (double)Correct / 500000);
             Console.ReadLine();
         }
     }

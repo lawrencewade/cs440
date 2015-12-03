@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RandomForest
 {
-    class BooleanValue : AttributeValue
+    public class BooleanValue : AttributeValue
     {
         bool _Value;
 
