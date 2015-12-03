@@ -113,7 +113,8 @@ namespace RandomForest
                     {
                         Func<AttributeValue[], AttributeValue> S = delegate(AttributeValue[] E) { return new IntegerValue(E[i].CompareTo(E[j])); };
                         Triplet<double, AttributeValue, bool> g = Gain(Target, S);
-                        if (G == null || g.First > G.First)
+                        g.First /= 2;
+                        if (G == null || g.First / 2 > G.First)
                         {
                             G = g;
                             I = i;
@@ -122,6 +123,7 @@ namespace RandomForest
                         }
                         S = delegate(AttributeValue[] E) { return E[i].Add(E[j]); };
                         g = Gain(Target, S);
+                        g.First /= 2;
                         if (g.First > G.First)
                         {
                             G = g;
@@ -131,6 +133,7 @@ namespace RandomForest
                         }
                         S = delegate(AttributeValue[] E) { return E[i].Subtract(E[j]); };
                         g = Gain(Target, S);
+                        g.First /= 2;
                         if (g.First > G.First)
                         {
                             G = g;
@@ -180,7 +183,7 @@ namespace RandomForest
                 //Less than discriminator
                 DataSet LT = Subset(delegate(AttributeValue[] E) { return Discriminator.Invoke(E).CompareTo(p.First) == -1; });
                 DataSet GTE = Subset(delegate(AttributeValue[] E) { return Discriminator.Invoke(E).CompareTo(p.First) != -1; });
-                double LTG = G-(Running * LT.Entropy(Target) + (1-Running) * GTE.Entropy(Target));
+                double LTG = G - (Running * LT.Entropy(Target) + (1-Running) * GTE.Entropy(Target));
                 //Equality discriminator
                 DataSet EQ = Subset(delegate(AttributeValue[] E) { return Discriminator.Invoke(E).CompareTo(p.First) == 0; });
                 DataSet NEQ = Subset(delegate(AttributeValue[] E) { return Discriminator.Invoke(E).CompareTo(p.First) != 0; });

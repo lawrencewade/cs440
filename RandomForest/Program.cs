@@ -9,7 +9,7 @@ namespace RandomForest
     {
         static bool ValidPlay(int DownNumber, int DownSuit, int CardNumber, int CardSuit)
         {
-            return DownNumber * 2 == CardNumber || CardSuit == DownSuit;
+            return DownNumber + CardNumber == 14 || (DownSuit == 2 && CardNumber > 7) || (DownSuit == 4 && CardNumber < 8) || CardNumber == DownNumber;
         }
 
         static bool ValidPlayAlt(AttributeValue DownNumber, AttributeValue DownSuit, AttributeValue CardNumber, AttributeValue CardSuit)
@@ -79,7 +79,7 @@ namespace RandomForest
 
         static void Main(string[] args)
         {
-            Forest D = new Forest(1, 8000, GenerateData, 4);
+            Forest D = new Forest(1, 2000, GenerateData, 4);
 
             Console.WriteLine(D);
             int Correct = 0;

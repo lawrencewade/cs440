@@ -11,9 +11,9 @@ namespace RandomForest
         K _Second;
         J _Third;
 
-        public T First { get { return _First; } }
-        public K Second { get { return _Second; } }
-        public J Third { get { return _Third; } }
+        public T First { get { return _First; } set { _First = value; } }
+        public K Second { get { return _Second; } set { _Second = value; } }
+        public J Third { get { return _Third; } set { _Third = value; } }
 
         public Triplet(T First, K Second, J Third)
         {
