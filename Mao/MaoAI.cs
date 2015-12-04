@@ -7,16 +7,11 @@ using RandomForest;
 
 namespace Mao
 {
-    class MaoAI
+    class MaoAI : Player
     {
         Deck _ImaginaryDeck = new Deck();
 
         Forest _Forest;
-
-        public void WatchPlay(Card DownCard, Card Played)
-        {
-            VerifyPlay(DownCard, Played, true);
-        }
 
         public Card MakePlay(Card DownCard, Hand Hand)
         {
@@ -57,6 +52,19 @@ namespace Mao
                 }
             }
             return Choice;
+        }
+
+        public bool ValidatePlay(Card DownCard, Card Played)
+        {
+            AttributeValue[] Entry = new AttributeValue[5];
+            Entry[0] = new IntegerValue(DownCard.Number);
+            Entry[1] = new IntegerValue(DownCard.Suit);
+            Entry[2] = new IntegerValue(Played.Number);
+            Entry[3] = new IntegerValue(Played.Suit);
+            Entry[4] = new BooleanValue(false);
+
+            if (_Forest == null) return true;
+            else return Convert.ToBoolean(_Forest.MakeDecision(Entry).ToString());
         }
 
         public void VerifyPlay(Card DownCard, Card Played, bool Valid)

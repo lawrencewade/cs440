@@ -44,10 +44,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Card.cs" />
+    <Compile Include="CheckerAI.cs" />
     <Compile Include="Deck.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="Hand.cs" />
+    <Compile Include="Human.cs" />
     <Compile Include="MaoAI.cs" />
+    <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
