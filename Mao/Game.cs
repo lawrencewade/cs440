@@ -20,9 +20,9 @@ namespace Mao
 
         int _Plays;
 
-        public Game(Player Master, List<Player> Learners)
+        public Game(Player Master, List<Player> Learners, Random Random)
         {
-            _Random = new Random();
+            _Random = Random;
             _Deck = new Deck();
             _Deck.Shuffle(_Random);
             _Return = new Deck(true);
@@ -70,7 +70,7 @@ namespace Mao
         {
             while (!Done())
             {
-                PrintGameData();
+                //PrintGameData();
                 Turn(_Master, _MasterHand, true);
                 //Console.Clear();
                 for (int i = 0; i < _Learners.Count; ++i)
@@ -79,6 +79,7 @@ namespace Mao
                     //Console.Clear();
                 }
                 _Plays++;
+                if (_Plays > 500) throw new Exception("Game exceeded 500 turns");
             }
             if (_MasterHand.Count == 0) return -1;
             else
