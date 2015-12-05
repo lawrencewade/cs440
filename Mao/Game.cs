@@ -35,6 +35,7 @@ namespace Mao
 
         private void Turn(Player Player, Hand Hand, bool Master= false)
         {
+			//Console.WriteLine (Player);
             Card C = Player.MakePlay(_DownCard, Hand);
             if (C == null)
             {

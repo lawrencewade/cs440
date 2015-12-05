@@ -21,24 +21,24 @@ namespace Mao
 
         public override string ToString()
         {
-            string n = "";
+            string s = "";
             switch (_Number)
             {
-                case 11: n = "Jack"; break;
-                case 12: n = "Queen"; break;
-                case 13: n = "King"; break;
-                case 1: n = "Ace"; break;
-                default: n = (_Number).ToString(); break;
+                case 11: s += "J"; break;
+                case 12: s += "Q"; break;
+                case 13: s += "K"; break;
+                case 1: s += "A"; break;
+                default: s += (_Number).ToString(); break;
             }
-            string s = "";
             switch (_Suit)
             {
-                case 1: s = "Spades"; break;
-                case 2: s = "Hearts"; break;
-                case 3: s = "Clubs"; break;
-                case 4: s = "Diamonds"; break;
+				case 1: s += "♠"; break;
+				case 2: s += "♥"; break;
+				case 3: s += "♣"; break;
+				case 4: s += "♦"; break;
             }
-            return n + " of " + s;
+			s += (_Number == 10) ? "" : " ";
+            return s;
         }
     }
 }

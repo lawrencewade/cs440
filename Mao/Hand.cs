@@ -39,7 +39,7 @@ namespace Mao
             string r = "";
             for (int i = 0; i < _Cards.Count; ++i)
             {
-                r += i + ". " + _Cards[i].ToString() + '\n';
+                r += i + "\t| " + _Cards[i].ToString() + '\n';
             }
             return r;
         }
