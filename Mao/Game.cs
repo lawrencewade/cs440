@@ -43,7 +43,7 @@ namespace Mao
                 CheckDeck();
                 return;
             }
-            bool Valid = (Master ? true : _Master.ValidatePlay(_DownCard, C));
+            bool Valid = (Master ? true : _Master.ValidatePlay(_DownCard, C, Player));
             foreach (Player L in _Learners) L.VerifyPlay(_DownCard, C, Valid);
             if (Valid)
             {

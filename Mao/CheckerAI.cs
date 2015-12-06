@@ -42,7 +42,7 @@ namespace Mao
             return Choice;
         }
 
-        public bool ValidatePlay(Card Down, Card Played)
+        public bool ValidatePlay(Card Down, Card Played, Player player)
         {
             return _Function.Invoke(Down, Played);
         }

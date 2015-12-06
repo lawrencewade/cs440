@@ -48,13 +48,33 @@ namespace RandomForest
 
         public override string ToString()
         {
-            if (_Comp == -1) return "[Discriminate VALUE OF " + _Index.ToString() + (_Split != null ? ((_Equality ? " == " : " < ") + _Split.ToString()) : "") + "]";
+			string index = ToStringAux (_Index);
+			string comp = ToStringAux (_Comp);
+
+            if (_Comp == -1) return "[Discriminate " + index + (_Split != null ? ((_Equality ? " == " : " < ") + _Split.ToString()) : "") + "]";
             else
             {
-                if (_FunctionNumber == 0) return "[Discriminate VALUE OF " + _Index.ToString() + " COMPARED TO " + _Comp.ToString() + (_Split != null ? ((_Equality ? " == " : " < ") + _Split.ToString()) : "" ) + "]";
-                else if (_FunctionNumber == 1) return "[Discriminate VALUE OF " + _Index.ToString() + " + " + _Comp.ToString() + (_Split != null ? ((_Equality ? " == " : " < ") + _Split.ToString()) : "") + "]";
-                else return "[Discriminate VALUE OF " + _Index.ToString() + " - " + _Comp.ToString() + (_Split != null ? ((_Equality ? " == " : " < ") + _Split.ToString()) : "") + "]";
+                if (_FunctionNumber == 0) return "[Discriminate " + index + " COMPARED TO " + comp + (_Split != null ? ((_Equality ? " == " : " < ") + _Split.ToString()) : "" ) + "]";
+                else if (_FunctionNumber == 1) return "[Discriminate " + index + " + " + comp + (_Split != null ? ((_Equality ? " == " : " < ") + _Split.ToString()) : "") + "]";
+                else return "[Discriminate " + index + " - " + comp + (_Split != null ? ((_Equality ? " == " : " < ") + _Split.ToString()) : "") + "]";
             }
         }
+
+		private string ToStringAux(int col)
+		{
+			switch(col)
+			{
+			case 0:
+				return "DownValue";
+			case 1:
+				return "DownSuit";
+			case 2:
+				return "CardValue";
+			case 3:
+				return "CardSuit";
+			default:
+				return "ERROR";
+			}
+		}
     }
 }

@@ -54,7 +54,7 @@ namespace Mao
             return Choice;
         }
 
-        public bool ValidatePlay(Card DownCard, Card Played)
+        public bool ValidatePlay(Card DownCard, Card Played, Player played)
         {
             AttributeValue[] Entry = new AttributeValue[5];
             Entry[0] = new IntegerValue(DownCard.Number);

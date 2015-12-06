@@ -59,7 +59,7 @@ namespace RandomForest
                 string R = "".PadLeft(Depth, '\t') + _Check + '\n';
                 foreach (KeyValuePair<AttributeValue, DecisionTree> p in _Children)
                 {
-                    R += "".PadLeft(Depth + 1, '\t') + "--> " + p.Key.ToString() + '\n' + p.Value.ToStringAux(Depth + 1);
+                    R += "".PadLeft(Depth, '\t') + ">> " + p.Key.ToString() + '\n' + p.Value.ToStringAux(Depth + 1);
                 }
                 return R + '\n';
             }

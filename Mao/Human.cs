@@ -11,10 +11,12 @@ namespace Mao
 
         public Card MakePlay(Card Down, Hand Hand)
         {
+			Console.Clear();
+			Console.WriteLine("Your Play:");
 			BigCard(Down, true);
 			ShowHand(Hand);
             //Console.WriteLine(Hand);
-            Console.Write("Your Play (Nothing for draw): ");
+            Console.Write("(Nothing for draw): ");
             while (true)
             {
 				string input = Console.ReadLine();
@@ -29,16 +31,21 @@ namespace Mao
             }
         }
 
-        public bool ValidatePlay(Card Down, Card Played)
+        public bool ValidatePlay(Card Down, Card Played, Player player)
         {
+			Console.Clear();
 			Console.WriteLine("My Play:");
 			BigCard (Played, false);
-			Console.Write("vvvvv");
+			Console.WriteLine("vvvvv");
 			BigCard (Down, true);
-			Console.Write("Was this valid? ");
+			Console.WriteLine("Was this valid?");
             while (true)
-            {
+			{
+				Console.Write("(y/n/w)(t/f/?)(1/0/2): ");
+
 				string input = Console.ReadLine();
+				if (input.Length == 0)
+					continue;
 				input = input.ToLower();
 				switch (input[0])
 				{
@@ -46,11 +53,9 @@ namespace Mao
 						return true;
 					case 'n': case 'f': case '0':
 						return false;
-					default:
-						Console.WriteLine("(y/n)(t/f)(1/0):");
-					break;
+					case 'w': case '?': case '2':
+					Console.WriteLine(player); break;
 				}
-				
             }
         }
 
@@ -92,7 +97,7 @@ namespace Mao
 			ConsoleColor back = ConsoleColor.Gray;
 			if (stack)
 			{
-				Console.Write("\n┌───╖\n│");
+				Console.Write("┌───╖\n│");
 				Console.ForegroundColor = back;
 				Console.Write("┼─┼");
 				Console.ForegroundColor = cardColor;
